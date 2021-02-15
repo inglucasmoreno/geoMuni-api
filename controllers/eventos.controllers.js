@@ -29,7 +29,8 @@ const getEvento = async (req, res) => {
 const listarEventos = async (req, res) => {
     try{
         const [eventos, total] = await Promise.all([
-            Evento.find({}, 'descripcion activo tipo lat lng fotoUrl'),
+            Evento.find({}, 'descripcion activo tipo lat lng fotoUrl')
+                  .populate('tipo','descripcion'),
             Evento.find().countDocuments()
         ]);
         success(res, { eventos, total });
