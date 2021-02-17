@@ -8,7 +8,6 @@ const tipoSchema = Schema({
     },
     activo: {
         type: Boolean,
-        required: 'Activo es un parametro obligatorio',
         default: true
     }
 }, { timestamps: true });
