@@ -1,3 +1,4 @@
+const { supportsColor } = require('chalk');
 const chalk = require('chalk');
 const {success, error} = require('../helpers/response');
 const Evento = require('../models/evento.model');
@@ -17,7 +18,7 @@ const nuevoEvento = async (req, res) => {
 const getEvento = async (req, res) => {
     try{
         const id = req.params.id;
-        const evento = await Evento.findById(id);
+        const evento = await Evento.findById(id).populate('tipo', 'descripcion');
         success(res, { evento })
     }catch(err){
         console.log(chalk.red(err));
@@ -28,10 +29,30 @@ const getEvento = async (req, res) => {
 // Listar eventos
 const listarEventos = async (req, res) => {
     try{
+
+        // Filtrado por condicion
+        const busqueda = {};
+        if(req.query.activo) busqueda['activo'] = req.query.activo;
+        if(req.query.tipo) busqueda['tipo'] = req.query.tipo;
+        if(req.query.descripcion){
+            const regex = new RegExp(req.query.descripcion, 'i'); // Expresion regular para busqueda insensible
+            busqueda['descripcion'] = regex;
+        } 
+        
+        // Paginacion
+        const desde = req.query.desde ? Number(req.query.desde) : 0;
+        const limit = req.query.limit ? Number(req.query.limit) : 0;
+
         const [eventos, total] = await Promise.all([
-            Evento.find({}, 'descripcion activo tipo lat lng fotoUrl')
-                  .populate('tipo','descripcion'),
-            Evento.find().countDocuments()
+            Evento.find(busqueda, 'descripcion activo tipo lat lng fotoUrl, createdAt')
+                  .skip(desde)
+                  .limit(limit)
+                  .populate({
+                      path: 'tipo',
+                      select: 'activo descripcion',
+                  })
+                  .sort({createdAt: -1}),         
+            Evento.find(busqueda).countDocuments()
         ]);
         success(res, { eventos, total });
     }catch(err){

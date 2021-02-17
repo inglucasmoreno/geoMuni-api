@@ -36,10 +36,8 @@ const getTipo = async (req, res) => {
 // Listar tipos
 const listarTipos = async (req, res) => {
     try{
-
-        const activo = req.query.activo || '';
         const busqueda = {};
-        if(activo) busqueda['activo'] = activo; 
+        if(req.query.activo) busqueda['activo'] = req.query.activo; 
 
         const [tipos, total] = await Promise.all([
             Tipo.find(busqueda,'descripcion activo').sort({ descripcion: 1 }),
