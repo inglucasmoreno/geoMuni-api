@@ -56,14 +56,16 @@ const actualizarTipos = async (req, res) => {
         const id = req.params.id;
         const { descripcion } = req.body;
         
-        // Se comprueba si el tipo a actualizar existe
-        const tipoBD = await Tipo.findById(id);
-        if(!tipoBD) return error(res, 400, 'El tipo no existe');
-
-        // Se determina si el tipo a actualizar esta repetido
-        if(descripcion.toUpperCase() != tipoBD.descripcion.toUpperCase() && descripcion){
-            const tipoRepetido = await Tipo.findOne({descripcion: { $regex: descripcion, $options: 'i'}});
-            if(tipoRepetido) return error(res, 400, 'El tipo ya existe');
+        if(descripcion){
+            // Se comprueba si el tipo a actualizar existe
+            const tipoBD = await Tipo.findById(id);
+            if(!tipoBD) return error(res, 400, 'El tipo no existe');
+    
+            // Se determina si el tipo a actualizar esta repetido
+            if(descripcion.toUpperCase() != tipoBD.descripcion.toUpperCase() && descripcion){
+                const tipoRepetido = await Tipo.findOne({descripcion: { $regex: descripcion, $options: 'i'}});
+                if(tipoRepetido) return error(res, 400, 'El tipo ya existe');
+            }
         }
 
         // Se actualiza el tipo
