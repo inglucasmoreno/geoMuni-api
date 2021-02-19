@@ -26,7 +26,7 @@ const getTipo = async (req, res) => {
     try{
         const id  = req.params.id;
         const tipo = await Tipo.findById(id, 'descripcion activo');
-        success(res, tipo);
+        success(res, { tipo });
     }catch(err){
         console.log(chalk.red(err));
         error(res, 500);
@@ -38,9 +38,20 @@ const listarTipos = async (req, res) => {
     try{
         const busqueda = {};
         if(req.query.activo) busqueda['activo'] = req.query.activo; 
+        if(req.query.descripcion){
+            const regex = new RegExp(req.query.descripcion, 'i'); // Expresion regular para busqueda insensible
+            busqueda.descripcion = regex;
+        }
+
+        // Paginacion
+        const desde = req.query.desde ? Number(req.query.desde) : 0;
+        const limit = req.query.limit ? Number(req.query.limit) : 0;
 
         const [tipos, total] = await Promise.all([
-            Tipo.find(busqueda,'descripcion activo').sort({ descripcion: 1 }),
+            Tipo.find(busqueda,'descripcion activo')
+                .skip(desde)
+                .limit(limit)
+                .sort({ descripcion: 1 }),
             Tipo.find(busqueda).countDocuments()
         ]);
         success(res, { tipos, total });
