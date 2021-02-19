@@ -18,7 +18,12 @@ const nuevoEvento = async (req, res) => {
 const getEvento = async (req, res) => {
     try{
         const id = req.params.id;
-        const evento = await Evento.findById(id).populate('tipo', 'descripcion');
+        const evento = await Evento.findById(id)
+                                   .populate('tipo', 'descripcion')
+                                   .populate({
+                                        path: 'subtipo',
+                                        select: 'activo descripcion',
+                                    })
         success(res, { evento })
     }catch(err){
         console.log(chalk.red(err));
@@ -45,13 +50,17 @@ const listarEventos = async (req, res) => {
 
         const [eventos, total] = await Promise.all([
             Evento.find(busqueda, 'descripcion activo tipo lat lng fotoUrl, createdAt')
-                  .skip(desde)
-                  .limit(limit)
-                  .populate({
-                      path: 'tipo',
-                      select: 'activo descripcion',
-                  })
-                  .sort({createdAt: -1}),         
+                .skip(desde)
+                .limit(limit)
+                .populate({
+                    path: 'tipo',
+                    select: 'activo descripcion',
+                })
+                .populate({
+                    path: 'subtipo',
+                    select: 'activo descripcion',
+                })
+                .sort({createdAt: -1}),         
             Evento.find(busqueda).countDocuments()
         ]);
         success(res, { eventos, total });

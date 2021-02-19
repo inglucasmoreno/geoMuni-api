@@ -19,6 +19,10 @@ const eventoSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: 'tipo'    
     },
+    subtipo: {
+        type: Schema.Types.ObjectId,
+        ref: 'subtipo'
+    },
     fotoUrl: {
         type: String,
         default: 'sin-foto',
