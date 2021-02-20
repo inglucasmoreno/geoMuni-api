@@ -1,6 +1,8 @@
 const chalk = require('chalk');
 const {success, error} = require('../helpers/response');
 const Tipo = require('../models/tipo.model');
+const Evento = require('../models/evento.model');
+const Subtipo = require('../models/subtipo.model');
 
 // Nuevo tipo
 const nuevoTipo = async (req, res) => {
@@ -13,8 +15,16 @@ const nuevoTipo = async (req, res) => {
         
         // Se crea el nuevo tipo
         const tipo = await Tipo(req.body).save();
+        
+        // Se crea el subtipo inicial - Se llama igual que el tipo
+        const subtipo = new Subtipo({
+            tipo: tipo._id, 
+            descripcion
+        });
+        
+        await subtipo.save();
         success(res, { tipo });
-    
+
     }catch(err){
         console.log(chalk.red(err));
         error(res, 500);
@@ -65,7 +75,7 @@ const listarTipos = async (req, res) => {
 const actualizarTipos = async (req, res) => {
     try{     
         const id = req.params.id;
-        const { descripcion } = req.body;
+        const { descripcion, activo } = req.body;
         
         if(descripcion){
             // Se comprueba si el tipo a actualizar existe
@@ -77,6 +87,12 @@ const actualizarTipos = async (req, res) => {
                 const tipoRepetido = await Tipo.findOne({descripcion: { $regex: descripcion, $options: 'i'}});
                 if(tipoRepetido) return error(res, 400, 'El tipo ya existe');
             }
+        }
+
+        // Se comprueba si hay eventos con este tipo antes de inhabilitar
+        if(activo === false){
+            const existeEvento = await Evento.findOne({ tipo: id, activo: true });
+            if(existeEvento) return error(res, 400, 'Existen eventos activos asociados con este tipo');
         }
 
         // Se actualiza el tipo

@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const {success, error} = require('../helpers/response');
 const Subtipo = require('../models/subtipo.model');
+const Evento = require('../models/evento.model');
 
 // Nuevo subTipo
 const nuevoSubtipo = async (req, res) => {
@@ -67,7 +68,7 @@ const listarSubtipos = async (req, res) => {
 const actualizarSubtipo = async (req, res) => {
     try{     
         const id = req.params.id;
-        const { descripcion, tipo } = req.body;
+        const { descripcion, tipo, activo } = req.body;
         
         // Se comprueba si el subtipo a actualizar existe
         const subtipoBD = await Subtipo.findById(id);
@@ -80,6 +81,19 @@ const actualizarSubtipo = async (req, res) => {
                 if(subtipoRepetido) return error(res, 400, 'El tipo ya existe');
             }
         }
+        
+        if(activo === false){
+            
+            // Se comprueba si hay eventos con este subtipo antes de inhabilitar
+            const existeEvento = await Evento.findOne({ subtipo: id, activo: true });
+            if(existeEvento) return error(res, 400, 'Existen eventos activos asociados con este subtipo');
+        
+            // Se comprueba si es el unico subtipo habilitado para el tipo en cuestion
+            const unicoSubtipo = await Subtipo.find({ tipo, activo: true });
+            if(unicoSubtipo.length < 2) return error(res, 400, 'La cantidad de subtipos no puede ser cero');
+        }
+
+        
 
         // Se actualiza el tipo
         const nuevoSubtipo = await Subtipo.findByIdAndUpdate(id, req.body, {new: true});       
