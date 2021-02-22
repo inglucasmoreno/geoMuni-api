@@ -49,7 +49,7 @@ const listarEventos = async (req, res) => {
         const limit = req.query.limit ? Number(req.query.limit) : 0;
 
         const [eventos, total] = await Promise.all([
-            Evento.find(busqueda, 'descripcion activo tipo lat lng fotoUrl, createdAt')
+            Evento.find(busqueda, 'descripcion activo tipo lat lng img createdAt')
                 .skip(desde)
                 .limit(limit)
                 .populate({
@@ -89,9 +89,26 @@ const actualizarEvento = async (req, res) => {
     }
 } 
 
+// Eliminar eventos
+const eliminarEvento = async (req, res) => {
+    try{
+        const id = req.params.id;
+        const existeEvento = await Evento.findById(id);
+        if(!existeEvento) error(res, 400, 'No existe el evento');
+        
+        // Eliminar evento
+        const eventoEliminado = await Evento.findByIdAndDelete(id);
+        success(res, { eventoEliminado });
+    }catch(err){
+        console.log(chalk.red(err));
+        error(res, 500);
+    }
+}
+
 module.exports = {
     nuevoEvento,
     getEvento,
     listarEventos,
-    actualizarEvento
+    actualizarEvento,
+    eliminarEvento
 }

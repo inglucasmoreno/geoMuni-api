@@ -23,6 +23,8 @@ app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/tipos', require('./routes/tipos.routes'));
 app.use('/api/subtipos', require('./routes/subtipos.routes'));
 app.use('/api/eventos', require('./routes/eventos.routes'));
+app.use('/api/uploads', require('./routes/uploads.routes'));
+
 
 // Lo ultimo
 // Nota: Esto es necesario para que en produccion al recargar no se pierda la ruta

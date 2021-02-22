@@ -6,7 +6,8 @@ const {
     nuevoEvento,
     getEvento, 
     listarEventos,
-    actualizarEvento
+    actualizarEvento,
+    eliminarEvento
 } = require('../controllers/eventos.controllers');
 
 const router = Router();
@@ -22,5 +23,6 @@ router.post('/',
         validarCampos,        
     ] , nuevoEvento);
 router.put('/:id', validarJWT, actualizarEvento);
+router.delete('/:id', validarJWT, eliminarEvento);
 
 module.exports = router;
