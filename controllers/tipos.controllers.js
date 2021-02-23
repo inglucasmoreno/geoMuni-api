@@ -76,7 +76,6 @@ const actualizarTipos = async (req, res) => {
     try{     
         const id = req.params.id;
         const { descripcion, activo } = req.body;
-        
         if(descripcion){
             // Se comprueba si el tipo a actualizar existe
             const tipoBD = await Tipo.findById(id);
@@ -89,8 +88,9 @@ const actualizarTipos = async (req, res) => {
             }
         }
 
+    
         // Se comprueba si hay eventos con este tipo antes de inhabilitar
-        if(activo === false){
+        if(activo == false || activo == 'false'){
             const existeEvento = await Evento.findOne({ tipo: id, activo: true });
             if(existeEvento) return error(res, 400, 'Existen eventos activos asociados con este tipo');
         }

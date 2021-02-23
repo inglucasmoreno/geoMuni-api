@@ -82,7 +82,7 @@ const actualizarSubtipo = async (req, res) => {
             }
         }
         
-        if(activo === false){
+        if(activo == false || activo == 'false'){
             
             // Se comprueba si hay eventos con este subtipo antes de inhabilitar
             const existeEvento = await Evento.findOne({ subtipo: id, activo: true });
@@ -91,6 +91,7 @@ const actualizarSubtipo = async (req, res) => {
             // Se comprueba si es el unico subtipo habilitado para el tipo en cuestion
             const unicoSubtipo = await Subtipo.find({ tipo, activo: true });
             if(unicoSubtipo.length < 2) return error(res, 400, 'La cantidad de subtipos no puede ser cero');
+        
         }
 
         
