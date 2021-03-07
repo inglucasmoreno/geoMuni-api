@@ -9,7 +9,7 @@ const Tipo = require('../models/tipo.model');
 const initialization = async () => {
     try{
         // Conexion con base de datos
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/geoMuni',{
+        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/geoEventos',{
             useNewUrlParser: true,
             useUnifiedTopology: true,
             useCreateIndex: true,
@@ -17,7 +17,6 @@ const initialization = async () => {
         });
         console.log(chalk.green('[Equinoccio Technology]') + ' - Conexion a base de datos correcta');   
         await userAdmin();  
-        await tiposIniciales();     
         console.log(chalk.green('[Equinoccio Technology]') + ' - Inicializacion completada');     
     }catch(err){
         console.log(err);
@@ -47,16 +46,6 @@ const userAdmin = async () => {
     console.log(chalk.green('[Equinoccio Technology]') + ' - Usuario: admin | Password: admin');
 }
 
-// Inicializacion de tipos
-const tiposIniciales = async () => {
-    // Tipo - Bache
-    const bache = new Tipo({ descripcion: 'Bache' });
-    await bache.save();
-    // Tipo - Cloaca
-    cloaca = new Tipo({ descripcion: 'Cloaca'});
-    await cloaca.save();
-    console.log(chalk.green('[Equinoccio Technology]') + ' - Tipos inicializados');
-}
 
 // Ejecucion de la funcion
 initialization();

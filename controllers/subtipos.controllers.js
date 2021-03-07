@@ -37,8 +37,13 @@ const getSubtipo = async (req, res) => {
 // Listar Subtipos
 const listarSubtipos = async (req, res) => {
     try{
-    
+        
+        // Ordenar
+        let ordenar = [req.query.columna || 'descripcion', req.query.direccion || 1];
+        
+        // Filtrado
         const busqueda = {};
+        
         busqueda.tipo = req.params.id;
         if(req.query.activo) busqueda['activo'] = req.query.activo; 
         if(req.query.descripcion){
@@ -54,7 +59,7 @@ const listarSubtipos = async (req, res) => {
             Subtipo.find(busqueda,'descripcion activo')
                 .skip(desde)
                 .limit(limit)
-                .sort({ descripcion: 1 }),
+                .sort([ordenar]),
             Subtipo.find(busqueda).countDocuments()
         ]);
         success(res, { subtipos, total });

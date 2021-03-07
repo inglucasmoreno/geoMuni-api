@@ -1,4 +1,4 @@
-const { supportsColor } = require('chalk');
+const mongoose = require('mongoose');
 const chalk = require('chalk');
 const {success, error} = require('../helpers/response');
 const Evento = require('../models/evento.model');
@@ -35,34 +35,74 @@ const getEvento = async (req, res) => {
 const listarEventos = async (req, res) => {
     try{
 
-        // Filtrado por condicion
+        // Busqueda para calcular total
         const busqueda = {};
-        if(req.query.activo) busqueda['activo'] = req.query.activo;
-        if(req.query.tipo) busqueda['tipo'] = req.query.tipo;
+
+        // Pipeline para Aggregate
+        let pipeline = [];
+
+        // Etapa 1 - Filtrado por Descripcion
         if(req.query.descripcion){
             const regex = new RegExp(req.query.descripcion, 'i'); // Expresion regular para busqueda insensible
+            pipeline.push({$match: {descripcion: regex}});
             busqueda['descripcion'] = regex;
         } 
         
-        // Paginacion
-        const desde = req.query.desde ? Number(req.query.desde) : 0;
-        const limit = req.query.limit ? Number(req.query.limit) : 0;
+        // Etapa 2 - Filtrado port activo/inactivo
+        if(req.query.activo == 'true'){
+            pipeline.push({$match: { activo: true }});
+            busqueda['activo'] = true;
+        }else if(req.query.activo == 'false'){
+            pipeline.push({$match: { activo: false }}); 
+            busqueda['activo'] = false;
+        }
 
-        const [eventos, total] = await Promise.all([
-            Evento.find(busqueda, 'descripcion activo tipo lat lng img createdAt')
-                .skip(desde)
-                .limit(limit)
-                .populate({
-                    path: 'tipo',
-                    select: 'activo descripcion',
-                })
-                .populate({
-                    path: 'subtipo',
-                    select: 'activo descripcion',
-                })
-                .sort({createdAt: -1}),         
+        // Etapa 3 - Join (Tipos y Subtipos)     
+        pipeline.push(
+            { $lookup: { // Lookup - Tipos
+                from: 'tipos',
+                localField: 'tipo',
+                foreignField: '_id',
+                as: 'tipo'
+            }},
+        );
+
+        pipeline.push(
+            { $lookup: { // Lookup - Subtipos
+            from: 'subtipos',
+            localField: 'subtipo',
+            foreignField: '_id',
+            as: 'subtipo'
+            }}
+        );
+
+        pipeline.push({ $unwind: '$tipo' });
+        pipeline.push({ $unwind: '$subtipo' });
+
+        
+        // Etapa 4 - Filtrado por tipo
+        if(req.query.tipo) {
+            pipeline.push({$match: { 'tipo._id': mongoose.Types.ObjectId(req.query.tipo) }});
+            busqueda['tipo'] = req.query.tipo;
+        };
+
+        // Etapa 5 -  Paginacion - (Ultima etapa del Pipeline siempre)
+        const desde = req.query.desde ? Number(req.query.desde) : 0;
+        const limit = req.query.limit ? Number(req.query.limit) : 0;       
+        if(limit != 0) pipeline.push({$limit: limit});
+        pipeline.push({$skip: desde});
+
+        // Etapa 6 - Ordenando datos
+        const ordenar = {};
+        ordenar[req.query.columna] = Number(req.query.direccion); 
+        pipeline.push({$sort: ordenar});
+
+        // Ejecución de consultas
+        const [eventos, total] = await Promise.all([           
+            Evento.aggregate(pipeline),
             Evento.find(busqueda).countDocuments()
-        ]);
+        ],)
+
         success(res, { eventos, total });
     }catch(err){
         console.log(chalk.red(err));

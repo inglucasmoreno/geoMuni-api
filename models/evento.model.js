@@ -1,6 +1,6 @@
 const { Schema, model } = require('mongoose'); 
 
-const eventoSchema = Schema({
+const eventoSchema = new Schema({
     descripcion: {
         type: String,
         trim: true
@@ -34,6 +34,7 @@ const eventoSchema = Schema({
         default: true
     }    
 },{ timestamps: true });
+
 
 module.exports = model('evento', eventoSchema); 
 

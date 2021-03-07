@@ -22,6 +22,10 @@ const getUsuario = async (req, res) => {
 const listarUsuarios = async (req, res) => {
 
     try{
+
+        // Ordenar
+        let ordenar = [req.query.columna || 'apellido', req.query.direccion || 1];
+
         // Se prepara el filtrado
         const desde = Number(req.query.desde) || 0;
         const limit = Number(req.query.limit) || 0;
@@ -39,7 +43,7 @@ const listarUsuarios = async (req, res) => {
             Usuario.find(busqueda, 'dni apellido nombre role email activo')    
                    .skip(desde)
                    .limit(limit)
-                   .sort({apellido: 1}),
+                   .sort([ordenar]),
             Usuario.find(busqueda).countDocuments()
         ]);
         

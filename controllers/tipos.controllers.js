@@ -46,7 +46,13 @@ const getTipo = async (req, res) => {
 // Listar tipos
 const listarTipos = async (req, res) => {
     try{
+
+        // Ordenar
+        let ordenar = [req.query.columna || 'descripcion', req.query.direccion || 1];
+
+        // Filtrado
         const busqueda = {};
+        
         if(req.query.activo) busqueda['activo'] = req.query.activo; 
         if(req.query.descripcion){
             const regex = new RegExp(req.query.descripcion, 'i'); // Expresion regular para busqueda insensible
@@ -61,7 +67,7 @@ const listarTipos = async (req, res) => {
             Tipo.find(busqueda,'descripcion activo')
                 .skip(desde)
                 .limit(limit)
-                .sort({ descripcion: 1 }),
+                .sort([ordenar]),
             Tipo.find(busqueda).countDocuments()
         ]);
         success(res, { tipos, total });
